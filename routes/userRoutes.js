@@ -5,16 +5,24 @@ const router = Router()
 
 
 
-router.get('/users',userController.getAllUsers)
+router.get('/',userController.getAllUsers)
 
-router.get('/users/:id',userController.getUserById)
 
-router.post('/users',userController.addUser)
+router.get('/name',userController.getUserByName)
 
-router.put('/users',userController.updateUser)
 
-router.delete('/users/:id',userController.deleteUsers)
+router.get('/loginHistorial/:id',userController.getLoginHistory)
 
-router.post('/users/multiple',userController.deleteMultipleUsers)
+router.get('/:id',userController.getUserById)
+
+router.post('/',userController.addUser)
+
+router.post('/login', userController.login);
+
+router.put('/',userController.updateUser)
+
+router.delete('/:id',userController.deleteUsers)
+
+router.post('/multiple',userController.deleteMultipleUsers)
 
 export default router

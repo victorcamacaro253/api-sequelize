@@ -1,6 +1,6 @@
     import sequelize from "../db/db.js"
-    import { Sequelize,DataTypes } from "sequelize"
-
+    import { DataTypes } from "sequelize"
+    import Role from "./rolesModel.js"
 
 
 
@@ -32,7 +32,15 @@
                 contraseña:{
                     type: DataTypes.STRING(250),
                     
-                }
+                },
+                rol: {
+                    type: DataTypes.INTEGER,
+                    references: {
+                      model: 'roles', // El nombre de la tabla referenciada
+                      key: 'id' // La columna clave primaria de la tabla `roles`
+                    },
+                    allowNull: true // Esta columna puede ser null si el rol no es obligatorio
+                  }
                 
         },{
             tableName: 'usuario',
@@ -43,7 +51,8 @@
 
         )
 
+// Relación: Un usuario tiene un rol
+user.belongsTo(Role, { foreignKey: 'rol', as: 'role' });
 
 
-
-    export default {user}
+    export default user

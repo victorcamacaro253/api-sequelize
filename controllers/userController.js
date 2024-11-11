@@ -1,7 +1,9 @@
 import userModel from '../models/userModel.js'
-import { hash } from 'bcrypt';
-
-
+import Role from '../models/rolesModel.js';
+import { hash,compare } from 'bcrypt';
+import tokenService from '../services/tokenService.js';
+import {randomBytes} from 'crypto';
+import userHistoryLogin from '../models/userHistoryModel.js'
 class userController {
 
 
@@ -9,7 +11,13 @@ static getAllUsers= async (req,res)=>{
 
 try {
     
-    const result = await  userModel.user.findAll();
+    const result = await  userModel.findAll({
+        include: {
+            model: Role,   // Include the 'Role' model
+            as: 'role',    // Alias we defined in the association
+            attributes: ['id_rol', 'rol', 'descripcion', 'created_at']  // List of columns you want to retrieve from the roles table
+          }
+    });
     return  res.json(result);
 
 
@@ -35,7 +43,14 @@ static getUserById= async (req,res)=>{
 
  try {
 
-    const  result = await userModel.user.findByPk(id)
+    const  result = await userModel.findOne({
+        where: { id: id },  // You can filter by user ID
+        include: {
+          model: Role,
+          as: 'role',
+          attributes: ['id_rol', 'rol', 'descripcion', 'created_at']
+        }
+        })
 
     res.json(result)
 
@@ -45,11 +60,96 @@ static getUserById= async (req,res)=>{
     res.status(500).json({message:'Error fetching user'})
 
  }
+
+ 
 }
 
 
+static getUserByName= async (req,res)=>{
+    const {name} = req.query;
+   
+    if(!name){
+   
+       
+       return  res.status(400).json({message:'Please provide a valid user id'})
+   
+    }
+   
+    try {
+   
+       const  result = await userModel.findAll({
+           where: { nombre: name },  // You can filter by user ID
+           include: {
+             model: Role,
+             as: 'role',
+             attributes: ['id_rol', 'rol', 'descripcion', 'created_at']
+           }
+           })
+
+   
+       res.json(result)
+   
+       
+    } catch (error) {
+       console.error('error',error)
+       res.status(500).json({message:'Error fetching user'})
+   
+    }
+
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+
+static login = async(req,res)=>{
+    const {email,password}=req.body;
+    console.log(email,password)
+    try {
+        const user = await userModel.findOne(
+            {where:{correo:email},
+            include: {
+                model: Role,
+                as: 'role',
+                attributes: ['id_rol', 'rol', 'descripcion', 'created_at']
+              }});
 
 
+       if(!user){
+        return {error:'Usuario no encontrado'}
+       }
+
+      
+
+       const isPasswordValid = await compare(password,user.contraseña)
+
+       if(!isPasswordValid){
+        return {error:'Contraseña Incorrecta'}
+       }
+
+const token = tokenService.generateToken(user.id,user.correo,user.rol)
+
+  // Generar un código aleatorio
+  const randomCode = randomBytes(8).toString('hex'); // Genera un código aleatorio de 8 caracteres
+  console.log('codigo',randomCode)
+  // Insertar registro de inicio de sesión en la base de datos
+  await userHistoryLogin.create({ id_usuario: user.id,codigo: randomCode})
+
+return res.json({
+    token, 
+    user: { 
+      id: user.id, 
+      nombre: user.nombre 
+    }
+  });
+       
+
+    } catch (error) {
+        console.error('error',error)
+        res.status(500).json({message:'Error fetching user'})
+        
+    }
+}
+
+//------------------------------------------------------------------------------------------------------------
 
 static addUser  = async (req, res) => {
 
@@ -91,7 +191,7 @@ try {
   }
 
 
-  const  userExists = await userModel.user.findOne({where:{cedula}})
+  const  userExists = await userModel.findOne({where:{cedula}})
   console.log('Usuario encontrado:', userExists);
   
 if(userExists){
@@ -113,7 +213,7 @@ usersToInsert.push({
 
 }
 
-const result = await userModel.user.bulkCreate(usersToInsert)
+const result = await userModel.bulkCreate(usersToInsert)
 
 createdUsers.push(...result);
 
@@ -134,7 +234,7 @@ return res.status(201).json({createdUsers,errors})
 
     try {
         
- const result = await userModel.user.findByPk(id)
+ const result = await userModel.findByPk(id)
 
  result.destroy()
 
@@ -153,7 +253,7 @@ return res.status(201).json({createdUsers,errors})
 
     try {
         // Buscar el usuario por ID
-        const user = await userModel.user.findByPk(id);
+        const user = await userModel.findByPk(id);
         
         if (!user) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -200,7 +300,7 @@ if(!Array.isArray(ids)  || ids.length === 0) {
 
 
 try {
-const deleteMultipleUsers = await  userModel.user.destroy({
+const deleteMultipleUsers = await  userModel.destroy({
     where:{
         id:ids
     }
@@ -222,7 +322,50 @@ res.json({message:`${deleteMultipleUsers} usuarios eliminados correctamente`})
 
 }
 
-
+//-------------------------------------------------------------------------------------------------------------------
+static getLoginHistory = async (req, res) => {
+    const { id } = req.params; // Obtener el ID del usuario desde los parámetros de la URL
+    
+    try {
+      // Buscar todos los registros del historial de inicio de sesión para un usuario específico
+      const userHistory = await userHistoryLogin.findAll({
+        where: { id_usuario: id }, // Filtrar por la clave foránea del usuario
+        attributes: ['id', 'id_usuario', 'fecha', 'codigo'], // Seleccionar los campos que deseas de historial
+        include: [
+          {
+            model: userModel, // Incluir el modelo de usuario
+            as: 'user', // Nombre del alias de la relación en el modelo
+            attributes: ['id', 'nombre', 'correo'], // Los campos del usuario que quieres incluir
+          }
+        ]
+      });
+      
+      if (userHistory.length === 0) {
+        return res.status(404).json({ message: 'No se encontró historial de inicio de sesión para este usuario' });
+      }
+  
+      // Responder con el historial de inicio de sesión
+      return res.json({
+        userHistory: userHistory.map(record => ({
+          id: record.dataValues.id,
+          id_usuario: record.dataValues.id_usuario,
+          fecha: record.dataValues.fecha,
+          codigo: record.dataValues.codigo,
+          user: {
+            id: record.user.dataValues.id,
+            nombre: record.user.dataValues.nombre,
+            correo: record.user.dataValues.correo,
+          }
+        })),
+      });
+  
+    } catch (error) {
+      console.error('Error al obtener el historial de inicio de sesión:', error);
+      res.status(500).json({ error: 'Error interno del servidor', details: error });
+    }
+  };
+  
+  
 
 
 }
