@@ -2,6 +2,7 @@ import express from "express";
 import userRoutes from  "./routes/userRoutes.js";
 import morgan from "morgan";
 import cors from 'cors'
+import productsRoutes from "./routes/productsRoutes.js";
 
 const app =express()
 
@@ -16,6 +17,7 @@ app.use(cors())
 app.use(morgan('dev'))
 
 app.use('/users',userRoutes)
+app.use('/products',productsRoutes)
 
 
 const PORT= process.env.PORT ?? 3010
