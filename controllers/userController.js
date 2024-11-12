@@ -4,8 +4,11 @@ import { hash,compare } from 'bcrypt';
 import tokenService from '../services/tokenService.js';
 import {randomBytes} from 'crypto';
 import userHistoryLogin from '../models/userHistoryModel.js'
-class userController {
 
+
+
+
+class userController {
 
 static getAllUsers= async (req,res)=>{
 
