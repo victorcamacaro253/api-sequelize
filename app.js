@@ -17,7 +17,7 @@ app.use(cors())
 app.use(morgan('dev'))
 
 app.use('/users',userRoutes)
-app.use('/products',productsRoutes)
+app.use('/Products',productsRoutes)
 
 
 const PORT= process.env.PORT ?? 3010
