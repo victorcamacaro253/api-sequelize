@@ -310,7 +310,7 @@ const deleteMultipleUsers = await  userModel.destroy({
 
 })
 
-if(deleteMultipleUsers === 0){
+if(deleteMultipleUsers.length === 0){
     return res.status(404).json({message:'No users found to delete'})
 }
 
