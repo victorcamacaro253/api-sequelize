@@ -21,4 +21,6 @@ const Categorias = sequelize.define('categorias',{
 
 },)
 
+
+
 export default Categorias;
