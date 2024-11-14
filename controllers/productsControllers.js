@@ -3,12 +3,15 @@ import Categorias from "../models/categoriasModel.js";
 import Proveedor from "../models/proveedoresModel.js";
 import sequelize from "../db/db.js";
 import {randomBytes} from 'crypto';
-import { where } from "sequelize";
+import { json, where } from "sequelize";
 import {Op} from "sequelize";
+import fs from 'fs'
+import csvParser from "csv-parser";
 
 class productsController{
 
-
+//--------------------------------------------------------------------------------------------------------------------------------
+//Funcion para obtener todos los productos
 static getProducts= async (req,res)=>{
     try {
         const products = await Products.findAll({
@@ -32,7 +35,8 @@ static getProducts= async (req,res)=>{
 
 }
 
-
+//-------------------------------------------------------------------------------------------------------------------------------------------
+//Funcion para obtener un producto por id
 
 
 static getProductById= async (req,res)=>{
@@ -81,7 +85,8 @@ static getProductById= async (req,res)=>{
     
    }
 
-
+//------------------------------------------------------------------------------------------------------------------------------------
+// Funcion para obtener todos los productos por su nombre de producto
 
  static getProductByName =async (req,res)=>{
   const {name} = req.query;
@@ -129,7 +134,8 @@ static getProductById= async (req,res)=>{
  }
 
 
-
+//------------------------------------------------------------------------------------------------------------------------------------
+// Funcion para insertar multiples productos
 
 static addMultipleProducts = async (req, res) => {
     // Convierte los productos de string a objeto
@@ -239,7 +245,8 @@ static addMultipleProducts = async (req, res) => {
     }
   };
 
-
+//-----------------------------------------------------------------------------------------------------------------------------------
+// Función para eliminar un  producto
 
   static deleteProduct = async (req, res) => {
     const { id } = req.params;
@@ -266,6 +273,9 @@ static addMultipleProducts = async (req, res) => {
 
 
 }
+
+//---------------------------------------------------------------------------------------------------------
+// Función para actualizar un producto
 
 static updateProduct = async (req, res) => {
   const { id } = req.params;
@@ -299,11 +309,133 @@ static updateProduct = async (req, res) => {
           console.error('Error ejecutando la consulta:', error);
           return res.status(500).json({ error: 'Error interno del servidor' });
           }
+
+
           };
 
 
+//-------------------------------------------------------------------------------------------------------------------------
+// Función para obtener productos por su rango de precio
+
+
+          static getProdcutsByPriceRange = async (req,res)=>{
+           const {min,max} = req.query
+
+           if(isNaN(min) || isNaN(max)){
+            return res.status(400).json({message:'Rango de precio invalido'})
+           }
+
+           try {
+            
+            const products = await Products.findAll({
+              where:{
+                precio:{
+                  [Op.between]:[parseFloat(min),parseFloat(max)]
+                }
+              }
+            })
+
+
+     res.json(products)
+
+
+           } catch (error) {
+            return res.status(500).json({message:'Error del servidor'})
+           }
+
+          }
+
+
+          static getTopSelling = async (req,res)=>{
+           try {
+            const topSelling = await Products.findAll({
+              order: [['ventas', 'DESC']],
+              limit: 5
+              })
+              res.json(topSelling)
+            
+           } catch (error) {
+            return res.status(500).json({message:'Error del servidor'})
+           }
+          }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+/*
+ static getProductsSoldByDateRange = async(req,res)=>{
+  const {startDate,endDate} = req.query
+
+ if (!startDate || !endDate) {
+  return res.status(400).json({ message: 'Se requieren startDate y endDate' });
+}
+    try {
+      const products = await Products.findAll({
+        where:{
+          fecha:
+          {[Op.between]:[startDate,endDate]}
+          }
+          })
+          res.json(products)
+
+ }catch(error){
+  return res.status(500).json({message:'Error del servidor'})
+ }
+
 
 }
+ */
+
+//-----------------------------------------------------------------------------------------------------------------------------
+
+ static importProducts = async (req,res)=>{
+const filePath= req.file.path
+const products =[]
+
+
+  try {
+    const readStream= fs.createReadStream(filePath)
+    const parseStream= readStream.pipe(csvParser())
+
+    parseStream.on('data',(row)=>{
+ products.push({
+  codigo : row.codigo,
+  nombre_producto: row.nombre_producto,
+  descripcion: row.descripcion,
+  precio: parseFloat(row.precio),
+  stock: parseInt(row.stock),
+  id_categoria: parseInt(row.id_categoria),
+  activo:row.activo,
+  id_proveedor:parseInt(row.id_proveedor),
+  imagen:row.imagen
+
+ })
+    })
+
+    await new Promise ((resolve,reject)=>{
+      parseStream.on('end',resolve),
+      parseStream.on('error',reject)
+    })
+
+    const count = await Products.bulkCreate(products)
+
+    fs.unlinkSync(filePath)
+
+    return res.json({message:'Productos Importados exitosamente',count})
+    
+  } catch (error) {
+       // Limpiar el archivo en caso de error
+       if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
+
+    return res.status(500).json({message:'Error del servidor'})
+    }
+    
+  }   
+
+}
+
+
 
 
 export default productsController;
