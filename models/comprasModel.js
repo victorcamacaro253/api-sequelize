@@ -1,6 +1,7 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
-import user from "./userModel.js";
+
+
 
 const Compras = sequelize.define('compras',{
     id_compra:{
@@ -30,6 +31,8 @@ const Compras = sequelize.define('compras',{
 })
 
 
-Compras.belongsTo(user,{foreignKey:'id_usuario',as: 'user' })
+
+
+
 
 export default Compras

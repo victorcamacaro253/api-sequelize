@@ -51,6 +51,9 @@
 
         )
 
+
+// Modelo Usuario
+Usuario.hasMany(Compra, { foreignKey: 'id_usuario' });
 // Relación: Un usuario tiene un rol
 user.belongsTo(Role, { foreignKey: 'rol', as: 'role' });
 

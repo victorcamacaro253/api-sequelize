@@ -2,6 +2,9 @@ import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
 import Categorias from "./categoriasModel.js";
 import Proveedor from "./proveedoresModel.js";
+//import ProductosCompra from "./productosCompraModel.js";
+
+
 
 const Products = sequelize.define('productos',{
     id_producto :{
@@ -60,10 +63,11 @@ const Products = sequelize.define('productos',{
     tableName: 'productos',
     timestamps: false,
 
-},
-)
+});
+
 
 
 Products.belongsTo(Categorias,{foreignKey:'id_categoria',as: 'categoria'})
 Products.belongsTo(Proveedor,{foreignKey:'id_proveedor',as : 'proveedor'})
+
 export default Products

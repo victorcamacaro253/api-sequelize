@@ -5,6 +5,8 @@ import cors from 'cors'
 import productsRoutes from "./routes/productsRoutes.js";
 import comprasRoutes from './routes/comprasRoutes.js'
 import helmet from "helmet";
+import sequelize from "./db/db.js";
+import './models/associations.js'; // Import associations after models
 
 
 const app =express()
@@ -24,8 +26,19 @@ app.use('/products',productsRoutes)
 app.use('/compras',comprasRoutes)
 
 
-const PORT= process.env.PORT ?? 3010
 
+
+const PORT= process.env.PORT ?? 3010
+/*
 app.listen(PORT,()=>{
     console.log(`Running on PORT ${PORT}`)
 })
+    */
+
+
+// Sync database and start server
+sequelize.sync({ force: false }).then(() => {
+    app.listen(PORT, () => {
+        console.log('Server is running on port 3000');
+    });
+});
