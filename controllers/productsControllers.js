@@ -433,6 +433,27 @@ const products =[]
     
   }   
 
+  static async  actualizarProductosMasVendidos(id_producto, cantidad_vendida) {
+    try {
+      // Buscar el producto en la base de datos
+      const producto = await Products.findByPk(id_producto);
+  
+      if (!producto) {
+        throw new Error(`Producto con ID ${id_producto} no encontrado`);
+      }
+  
+      // Actualizar la cantidad de productos vendidos
+      await producto.update({
+        productos_vendidos: producto.productos_vendidos + cantidad_vendida
+      });
+  
+      console.log(`Productos vendidos actualizados para el producto ID: ${id_producto}`);
+    } catch (error) {
+      console.error('Error actualizando productos más vendidos:', error);
+    }
+  }
+  
+
 }
 
 
