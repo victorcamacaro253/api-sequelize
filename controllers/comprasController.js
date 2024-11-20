@@ -39,6 +39,9 @@ static getCompras= async (req, res) => {
             res.status(500).json({ message: error.message })
             }
             }
+
+
+ //-----------------------------------------------------------------------------------------------------------------------------------           
             
             static getComprasById = async (req, res) => {
               try {
@@ -66,6 +69,10 @@ static getCompras= async (req, res) => {
                               res.status(500).json({ message: error.message })
                               }
                             }
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------
+
 
             static getComprasByUserId= async (req, res) => {
                 const {id} = req.params
@@ -100,8 +107,8 @@ static getCompras= async (req, res) => {
                         }
 
                         }
-                        
-
+                      
+    //-------------------------------------------------------------------------------------------------------------------------------------
 
                         static compraProduct= async (req, res) => {
                           const { id_usuario,productos} = req.body
@@ -176,7 +183,9 @@ static getCompras= async (req, res) => {
                             const newStock = stock.stock - producto.cantidad
 
 
-                            await Products.update({stock:newStock},  { where: { id_producto: producto.id_producto }, transaction: transaccion })
+                            await Products.update({stock:newStock}, 
+                               { where: { id_producto: producto.id_producto },
+                                transaction: transaccion })
                            })
 
                            await Promise.all(updateStockPromises);
@@ -200,6 +209,226 @@ static getCompras= async (req, res) => {
 
 
                         }
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ static getComprasRangoFecha = async (req,res)=>{
+  const {inicio,fin} = req.query
+
+   // Validar si las fechas son válidas
+   if (!inicio || !fin) {
+    return res.status(400).json({ error: "Las fechas de inicio y fin son requeridas." });
+  }
+   // Formatear las fechas (asegúrate de que el formato sea el correcto según tu base de datos)
+   const formattedInicio = new Date(inicio);
+   const formattedFin = new Date(fin);
+
+  try {
+    const compras = await Compras.findAll({where:{
+      fecha:{
+        [Op.between]:[formattedInicio,formattedFin ]
+      }
+    },
+      include:[
+        {
+            model: user,
+            
+            attributes:['id','nombre','apellido','correo']
+        }, {
+            model: productosCompras, // Obtener los productos comprados en esta compra
+           
+            
+            include: [
+              {
+                model: Products, // Obtener los detalles de los productos
+                
+                attributes: ['id_producto', 'nombre_producto', 'precio']
+              }
+            ]
+          }
+    ]})
+
+      // Verificar si se encontraron compras
+      if (!compras || compras.length === 0) {
+        return res.status(404).json({ error: "No se encontraron compras en el rango de fechas proporcionado." });
+      }
+
+    res.json(compras)
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({error: "Error al obtener las compras "})
+    
+  }
+ }
+
+
+ //--------------------------------------------------------------------------------------------------------------------------------
+
+ static getComprasUsuarioRangoFechas  = async (req,res)=>{
+ const {id} = req.params;
+ const {inicio,fin} = req.query;
+
+
+
+ const userData = await user.findByPk(id);
+
+ if (!userData || userData.length === 0) {
+  return res.status(404).json({ error: "El usuario no existe." });
+  
+ }
+
+
+ const formattedInicio = new Date(inicio);
+ const formattedFin = new Date(fin);
+
+ console.log(formattedFin,formattedInicio)
+ try {
+  const compras = await Compras.findAll({where:
+    {
+      [Op.and]:
+      [
+        {id_usuario: id},
+        {fecha: {[Op.between]: [formattedInicio, formattedFin]}},
+        ],
+        },  include:[
+          {
+              model: user,
+              
+              attributes:['id','nombre','apellido','correo']
+          }, {
+              model: productosCompras, // Obtener los productos comprados en esta compra
+             
+              
+              include: [
+                {
+                  model: Products, // Obtener los detalles de los productos
+                  
+                  attributes: ['id_producto', 'nombre_producto', 'precio']
+                }
+              ]
+            }
+      ]
+        
+ })
+
+
+if(!compras || compras.length === 0){
+  return res.status(404).json({error: "No se encontraron compras en elrango de fechas proporcionado."})
+    }
+    res.json(compras)
+
+
+ }catch(error){
+  console.log(error)
+  return res.status(500).json({error: "Error al obtener las compras "})
+ }
+
+}
+
+
+ static getComprasByUsername = async (req, res) => {
+    const { username } = req.params;
+
+    const nombre= username
+
+    try {
+      const userData = await user.findOne({where: {nombre}})
+
+      if(!userData || userData.length === 0){
+        return res.status(404).json({error: "No se encontró el usuario con el"})
+      }
+      const compras = await Compras.findAll({
+        where: {
+          id_usuario: userData.id
+          }, include:[
+            {
+                model: user,
+                
+                attributes:['id','nombre','apellido','correo']
+            }, {
+                model: productosCompras, // Obtener los productos comprados en esta compra
+               
+                
+                include: [
+                  {
+                    model: Products, // Obtener los detalles de los productos
+                    
+                    attributes: ['id_producto', 'nombre_producto', 'precio']
+                  }
+                ]
+              }
+        ]
+        })
+
+        res.json(compras)
+      
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({error: "Error al obtener las compras "})
+    }
+
+ }
+
+ static deleteCompra = async (req, res) => {
+  const {id} = req.params
+  
+  const transaccion = await sequelize.transaction()
+  
+  try {
+  
+    const compra = await Compras.findByPk(id,{ transaction: transaccion})
+
+    if(!compra){
+      await transaccion.rollback()
+      return res.status(404).json({error: "compra no encontrada"})
+    }
+
+    const productosComprados= await productosCompras.findAll({
+      where:{id_compra:id},
+      transaction:transaccion 
+    })
+
+    const updateProductosComprados = productosComprados.map(async (producto)=>{
+      const productoEncontrado = await Products.findByPk(producto.id_producto, {transaction:transaccion})
+
+
+      if(productoEncontrado){
+    const nuevoStock= productoEncontrado.stock + producto.cantidad;
+    await Products.update({stock:nuevoStock},
+      {where:{id_producto:productoEncontrado.id_producto},
+      transaction:transaccion
+    })
+    
+      }
+
+    })
+
+  await Promise.all(updateProductosComprados)
+
+  //Eliminar los productos de la compra
+  await productosCompras.destroy({
+    where: {id_compra:id},
+    transaction: transaccion
+  })
+
+  //Eliminamos la compra
+  await compra.destroy({transaction:transaccion})
+
+  await transaccion.commit()
+
+  return res.json({message:"Compra eliminada con exito"})
+
+  } catch (error) {
+    await transaccion.rollback(); // Rollback en caso de error
+    console.error(error);
+    return res.status(500).json({ error: "Error al eliminar la compra" });
+  }
+
+ }
+
 
 }
 

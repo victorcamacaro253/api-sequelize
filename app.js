@@ -26,7 +26,7 @@ app.use(morgan('dev'))
 const csrfProtection = csrf({cookie:true})
 
 app.use(cookieParser());
-app.use(csrfProtection);
+//app.use(csrfProtection);
 
 app.use('/users',userRoutes)
 app.use('/products',productsRoutes)
@@ -51,6 +51,6 @@ app.listen(PORT,()=>{
 // Sync database and start server
 sequelize.sync({ force: false }).then(() => {
     app.listen(PORT, () => {
-        console.log('Server is running on port 3000');
+        console.log('Server is running on port 3010');
     });
 });
