@@ -30,6 +30,7 @@ router.get('/:id',comprasController.getComprasById)
 
 router.post('/',comprasController.compraProduct)
 
+//Ruta para eliminar una compra
 
 router.delete('/:id',comprasController.deleteCompra)
 
