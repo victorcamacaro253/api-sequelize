@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 
 dotenv.config()
+
+/*
 const generateToken=(UserId,email,role)=>{
    
   // Generar un token JWT
@@ -12,7 +14,13 @@ const generateToken=(UserId,email,role)=>{
 );
 
 return token;
-} 
+} */
+const generateToken= (UserId, email, role,expiresIn) =>{
+  const payload= {id: UserId,email: email,rol: role}
+const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: expiresIn });
+return token
+    
+}
 
 const verifyToken=(token)=>{
      try{
