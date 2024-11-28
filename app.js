@@ -4,6 +4,7 @@ import morgan from "morgan";
 import cors from 'cors'
 import productsRoutes from "./routes/productsRoutes.js";
 import comprasRoutes from './routes/comprasRoutes.js'
+import authRoutes from './routes/authRoutes.js'
 import helmet from "helmet";
 import sequelize from "./db/db.js";
 import './models/associations.js'; // Import associations after models
@@ -31,6 +32,7 @@ app.use(cookieParser());
 app.use('/users',userRoutes)
 app.use('/products',productsRoutes)
 app.use('/compras',comprasRoutes)
+app.use('/auth',authRoutes)
 
 app.get('/csrftoken',csrfProtection,(req,res)=>{
     //  Envia el token CSRF en una cookie llamada 'XSRF-TOKEN'
