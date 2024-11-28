@@ -12,27 +12,28 @@ class productsController{
 
 //--------------------------------------------------------------------------------------------------------------------------------
 //Funcion para obtener todos los productos
-static getProducts= async (req,res)=>{
-    try {
-        const products = await Products.findAll({
-             include:[ {
-            model: Categorias,   // Include the 'Role' model
-            as: 'categoria',    // Alias we defined in the association
-            attributes: ['id_categoria', 'categoria', 'descripcion']  // List of columns you want to retrieve from the roles table
-          },
-          {
-            model: Proveedor,
-            as: 'proveedor',
-            attributes: ['id_proveedor', 'nombre', 'direccion'],
-
-          }
-        ]
-        })
-        res.json(products);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-            }
-
+static getProducts = async (req, res) => {
+  try {
+    const products = await Products.findAll({
+      include: [
+        {
+          model: Categorias,
+          as: 'categoria',
+          attributes: ['id_categoria', 'categoria', 'descripcion']
+        },
+        {
+          model: Proveedor,
+          as: 'proveedor',
+          attributes: ['id_proveedor', 'nombre', 'direccion']
+        }
+      ],
+      attributes: ['id_producto', 'codigo', 'nombre_producto', 'descripcion', 'precio', 'stock', 'vendido', 'id_categoria', 'activo', 'id_proveedor', 'imagen']
+    })
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ message: 'Error fetching products' });
+  }
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------

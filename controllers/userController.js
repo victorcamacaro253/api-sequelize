@@ -176,6 +176,7 @@ try {
     const usersToInsert= [];
 
     for(const user of users){
+      
   const{
   nombre,
   apellido,
