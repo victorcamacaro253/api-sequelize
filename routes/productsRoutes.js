@@ -14,6 +14,7 @@ router.get('/price',productsController.getProdcutsByPriceRange)
 router.get('/topSelling',productsController.getTopSelling)
 
 //router.get('/salesByDate', productsController.getProductsSoldByDateRange);
+router.get('/categoria/:categoria',productsController.getProductsByCategoria)
 
 
 router.post('/import',upload.single('file'),productsController.importProducts)

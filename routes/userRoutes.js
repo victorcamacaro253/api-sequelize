@@ -1,6 +1,6 @@
 import { Router } from "express"
 import userController from "../controllers/userController.js"
-
+import upload from "../middleware/multer.js"
 const router = Router()
 
 
@@ -24,5 +24,7 @@ router.put('/',userController.updateUser)
 router.delete('/:id',userController.deleteUsers)
 
 router.post('/multiple',userController.deleteMultipleUsers)
+
+router.post('/import',upload.single('file'),userController.importUsers)
 
 export default router
