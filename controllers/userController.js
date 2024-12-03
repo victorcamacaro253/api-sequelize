@@ -4,7 +4,10 @@ import { hash,compare } from 'bcrypt';
 import tokenService from '../services/tokenService.js';
 import {randomBytes} from 'crypto';
 import userHistoryLogin from '../models/userHistoryModel.js'
-
+import fs from 'fs'
+import csvParser from "csv-parser"
+import { parse } from 'path';
+import { rejects } from 'assert';
 
 
 
@@ -129,6 +132,8 @@ static login = async(req,res)=>{
        }
 
 const token = tokenService.generateToken(user.id,user.correo,user.rol)
+
+const refreshToken= tokenService.generateToken(user.id,user.correo,user.rol)
 
   // Generar un código aleatorio
   const randomCode = randomBytes(8).toString('hex'); // Genera un código aleatorio de 8 caracteres
@@ -370,7 +375,47 @@ static getLoginHistory = async (req, res) => {
   };
   
   
+  static importUsers = async (req, res) => {
+ const filePath= req.file.path;
+ const users =[]
 
+   try {
+     const readStream= fs.createReadStream(filePath)
+     const parseStream= readStream.pipe(csvParser())
+
+
+     parseStream.on('data',(row)=>{
+      const hashPassword = hash(row.contraseña,10)
+      users.push({
+        nombre : row.nombre,
+        apellido: row.apellido,
+        cedula: row.cedula,
+        contraseña: hashPassword,
+        rol: row.rol,
+        imagen: row.imagen
+      })
+     })
+
+     await new Promise ((resolve,reject)=>{
+      parseStream.on('end',resolve),
+      parseStream.on('error',reject)
+     })
+
+     const count = await userModel.bulkCreate(users)
+
+     fs.unlinkSync(filePath)
+     return res.json({message:'Usuarios importados Correctamente ',count})
+
+   } catch (error) {
+    if(fs.existsSync(filePath)){
+      fs.unlinkSync(filePath)
+    }
+    console.error('Error al importar usuarios:', error);
+    res.status(500).json({ error: 'Error interno del servidor', details: error})
+    
+   }
+
+  }
 
 }
 export default userController

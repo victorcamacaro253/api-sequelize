@@ -453,8 +453,61 @@ const products =[]
       console.error('Error actualizando productos más vendidos:', error);
     }
   }
+  static async getProductsByCategoria(req, res) {
+    try {
+      const { categoria } = req.params;
   
-
+      // Validar que el parámetro 'categoria' sea válido
+      if (!categoria) {
+        return res.status(400).json({ error: 'La categoría es obligatoria' });
+      }
+  
+      // Obtener el id_categoria correspondiente al nombre de la categoría
+      const categoriaData = await Categorias.findOne({
+        where: { categoria } // Suponiendo que el campo 'categoria' es el nombre
+      });
+  
+      if (!categoriaData) {
+        return res.status(404).json({ message: 'Categoría no encontrada' });
+      }
+  
+      const id_categoria = categoriaData.id_categoria;
+  
+      // Buscar los productos que pertenecen a la categoría encontrada
+      const products = await Products.findAll({
+        where: {
+          id_categoria  // Filtrar por el id de la categoría
+        },
+        include: [
+          {
+            model: Categorias,
+            as: 'categoria',
+            attributes: ['id_categoria', 'categoria', 'descripcion']
+          },
+          {
+            model: Proveedor,
+            as: 'proveedor',
+            attributes: ['id_proveedor', 'nombre', 'direccion']
+          }
+        ],
+        attributes: ['id_producto', 'codigo', 'nombre_producto', 'descripcion', 'precio', 'stock', 'vendido', 'id_categoria', 'activo', 'id_proveedor', 'imagen']
+      });
+  
+      // Si no se encuentran productos, devolver un mensaje adecuado
+      if (products.length === 0) {
+        return res.status(404).json({ message: 'No se encontraron productos para esta categoría' });
+      }
+  
+      // Responder con los productos encontrados
+      res.json(products);
+    } catch (error) {
+      // Capturar y manejar cualquier error
+      console.error(error);
+      res.status(500).json({ error: 'Hubo un error al obtener los productos' });
+    }
+  }
+  
+  
 }
 
 

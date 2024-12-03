@@ -123,14 +123,14 @@ if(!tokenEntry){
 
  static refreshToken = async (req, res) => {
   const token= req.cookies.refreshToken;
-console.log(token)
+//console.log(token)
   if(!token){
     return res.status(401).json({ message: 'No se encontró el refresh token'})
   }
 
   try {
     const decoded= tokenService.verifyToken(token)
-  console.log(decoded)
+  //console.log(decoded)
     if(!decoded){
       return res.status(401).json({ message: 'El refresh token es inválido o expiro'})
     }
