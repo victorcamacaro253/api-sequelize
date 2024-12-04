@@ -373,7 +373,42 @@ static getLoginHistory = async (req, res) => {
       res.status(500).json({ error: 'Error interno del servidor', details: error });
     }
   };
-  
+ 
+ //-----------------------------------------------------------------------------------------------------------------------------------------
+ 
+ static getUsersWithPagination = async (req, res) => {
+  try {
+    // Obtener 'page' y 'limit' desde la URL
+    let { page = 1, limit = 10 } = req.query;
+
+    // Convertir a enteros
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
+
+    // Validar que 'page' y 'limit' sean números válidos
+    if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1) {
+      return res.status(400).json({ error: 'Los parámetros "page" y "limit" deben ser números positivos válidos.' });
+    }
+
+    // Calcular el 'offset'
+    const offset = (page - 1) * limit;
+
+    // Buscar los usuarios con paginación
+    const users = await userModel.findAll({
+      limit: limit,  // Limitar la cantidad de registros
+      offset: offset,  // Desplazamiento de registros
+      attributes: ['id', 'nombre', 'correo'],  // Seleccionar solo ciertos campos
+    });
+
+    // Responder con los usuarios obtenidos
+    res.json(users);
+  } catch (error) {
+    console.error('Error al obtener los usuarios:', error);
+    res.status(500).json({ error: 'Error interno del servidor', details: error });
+  }
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
   
   static importUsers = async (req, res) => {
  const filePath= req.file.path;
