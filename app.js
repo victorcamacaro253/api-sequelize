@@ -5,9 +5,7 @@ import routes from './routes/index.js'
 import helmet from "helmet";
 import sequelize from "./db/db.js";
 import './models/associations.js'; // Import associations after models
-import session from "express-session";
-import csrf from "csurf";
-import cookieParser from "cookie-parser";
+
 const app =express()
 
 
@@ -21,19 +19,19 @@ app.use(helmet())
 app.use(morgan('dev'))
 
 
-const csrfProtection = csrf({cookie:true})
+//const csrfProtection = csrf({cookie:true})
 
-app.use(cookieParser());
+//.use(cookieParser());
 //app.use(csrfProtection);
 
 app.use(routes)
 
 
-app.get('/csrftoken',csrfProtection,(req,res)=>{
+/*app.get('/csrftoken',csrfProtection,(req,res)=>{
     //  Envia el token CSRF en una cookie llamada 'XSRF-TOKEN'
     res.cookie('XSRF-TOKEN',req.csrfToken())
     res.json({csrfToken:req.csrfToken()})
-})
+})*/
 
 app.use((req, res, next) => {
     res.status(404).json({ message: 'Ruta no encontrada' });
