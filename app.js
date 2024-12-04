@@ -1,49 +1,43 @@
-import express from "express";
-import morgan from "morgan";
+import express, { json } from 'express';
+import http from 'http';
+import limiter from './middleware/rateLimiter.js';
 import cors from 'cors'
-import routes from './routes/index.js'
-import helmet from "helmet";
-import sequelize from "./db/db.js";
-import './models/associations.js'; // Import associations after models
-
-const app =express()
+import { setupWebSocket } from './services/websocketServer.js'; // Importa la función para configurar WebSocket
+import routes from  './routes/index.js';
+import morgan from 'morgan';
 
 
-app.use(express.json()); 
+const app = express();
 
-app.get('/',(req,res)=>{
-    res.json({message:'hola mundo'})
-})
+
+// Crear un servidor HTTP a partir de Express
+const server = http.createServer(app);
+
+// Configurar WebSocket
+setupWebSocket(server);
+
+
 app.use(cors())
-app.use(helmet())
+
+
+app.use(limiter);
+app.use(json());
+app.disable('x-powered-by')
+
 app.use(morgan('dev'))
 
-
-//const csrfProtection = csrf({cookie:true})
-
-//.use(cookieParser());
-//app.use(csrfProtection);
-
-app.use(routes)
+app.get('/',(req,res)=>{
+    res.json({ message : 'hola mundo' })
+})
 
 
-/*app.get('/csrftoken',csrfProtection,(req,res)=>{
-    //  Envia el token CSRF en una cookie llamada 'XSRF-TOKEN'
-    res.cookie('XSRF-TOKEN',req.csrfToken())
-    res.json({csrfToken:req.csrfToken()})
-})*/
-
-app.use((req, res, next) => {
-    res.status(404).json({ message: 'Ruta no encontrada' });
-  });
+//Usa las rutas de usuarios 
+app.use(routes);
 
 
-const PORT= process.env.PORT ?? 3010
 
+const PORT = process.env.PORT ?? 3001
 
-// Sync database and start server
-sequelize.sync({ force: false }).then(() => {
-    app.listen(PORT, () => {
-        console.log('Server is running on port 3010');
-    });
-});
+app.listen(PORT, ()=>{
+    console.log(`Server running on port ${PORT}`)
+})
