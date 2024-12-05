@@ -453,6 +453,10 @@ const products =[]
       console.error('Error actualizando productos más vendidos:', error);
     }
   }
+
+//-----------------------------------------------------------------------------------------------------------------------------
+
+
   static async getProductsByCategoria(req, res) {
     try {
       const { categoria } = req.params;
@@ -506,10 +510,43 @@ const products =[]
       res.status(500).json({ error: 'Hubo un error al obtener los productos' });
     }
   }
+
+  //--------------------------------------------------------------------------------------------------------------------------------------
+
+static getAvailableProducts= async(req,res)=>{
+  
+ try {
+  
+  const products= await Products.findAll({
+    attributes:['id_producto','nombre_producto','stock'],
+    where: {
+      stock:{
+        [Op.gt]:0
+      }
+    }
+  })
+
+
+  const total_productos_disponibles = products.length
+const totalStock = products.reduce((acc,product)=>acc + product.stock,0)
+
+
+  res.json({
+    products,
+    total_productos_disponibles,
+    totalStock
+  })
+
+}catch(error){
+  console.error(error)
+  res.status(500).json({error:'Hubo un error al obtener los productos disponibles'})
+
+}
   
   
 }
 
+}
 
 
 
