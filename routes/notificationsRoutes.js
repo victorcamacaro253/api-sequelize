@@ -1,22 +1,17 @@
-import { Router } from 'express'
-import notificationsController from '../controllers/notificationsController.js';
-
+import { Router } from "express";
+import notificationsController from "../controllers/notificationsController.js";
 const router = Router();
 
-//Ruta para obtener notificaciones
 
-router.get('/',notificationsController.getNotifications);
+router.get('/',notificationsController.getNotifications)
 
-//Ruta para crear una notificacion
+ router.get('/:id',notificationsController.getNotificationById)
 
-router.post('/',notificationsController.createNotification); 
+ router.post('/',notificationsController.createNotification)
 
-//Ruta para actualizar una notificacion
+ router.delete('/:id',notificationsController.deleteNotification)
 
-router.put('/:id',notificationsController.updateNotification);
-
-//Router para eliminar una notiificacion
-router.delete('/:id',notificationsController.deleteNotification);
+ router.put('/:id',notificationsController.updateNotification)
 
 
 export default router;
