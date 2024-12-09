@@ -452,5 +452,27 @@ static getLoginHistory = async (req, res) => {
 
   }
 
+
+
+  //-----------------------------------------------------------------------------------------------------------------------------------
+
+  static changeStatus= async (req,res)=>{
+    const {id,status}= req.params
+console.log(status,id)
+    try {
+    const user = await userModel.findByPk(id);
+    if (!user) {
+      return res.status(404).json({message:'Usuario no encontrado'})
+    }
+    user.estatus = status; // Update the status
+    await user.save(); // Save the changes
+    
+    res.json({message:'Estatus del Usuario cambiado exitosamente'})
+  } catch (error) {
+    console.error('Error changing user status:', error);
+    return res.status(500).json({message:'Error interno del servidor'})
+  }
+
+}
 }
 export default userController
