@@ -23,6 +23,8 @@ router.post('/login', userController.login);
 
 router.put('/',userController.updateUser)
 
+router.put('/status/:id/:status',userController.changeStatus)
+
 router.delete('/:id',userController.deleteUsers)
 
 router.post('/multiple',userController.deleteMultipleUsers)

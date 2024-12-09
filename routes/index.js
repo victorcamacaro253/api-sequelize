@@ -4,6 +4,7 @@ import userRoutes from "./userRoutes.js";
 import productRoutes from "./productsRoutes.js";
 import comprasRoutes from "./comprasRoutes.js";
 import noticationsRoutes from "./notificationsRoutes.js";
+import rolesPermisosRouters from "./rolesPermisosRoutes.js";
 import cookieParser from "cookie-parser";
 import csrf from '../middleware/csrfToken.js'
 import routeNotFound from "../middleware/routeNotFound.js";
@@ -27,6 +28,8 @@ router.use('/products',productRoutes)
 router.use('/compras',csrf.csrfMiddleware,comprasRoutes)
 
 router.use('/notificaciones',noticationsRoutes)
+
+router.use('/',rolesPermisosRouters)
 
 
 router.use(routeNotFound);
