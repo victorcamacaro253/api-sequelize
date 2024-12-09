@@ -2,7 +2,7 @@ import sequelize from "../db/db.js"
 import { DataTypes } from "sequelize"
 
 
-const Role = sequelize.define('role', {
+const Role = sequelize.define('roles', {
     id_rol: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -18,6 +18,7 @@ const Role = sequelize.define('role', {
       },
       created_at:{
         type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW, // Valor por defecto
   allowNull: false,
   field: 'created_at' // This will map it to `created_at` in the database
       }

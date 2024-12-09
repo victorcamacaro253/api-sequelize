@@ -40,6 +40,11 @@
                       key: 'id' // La columna clave primaria de la tabla `roles`
                     },
                     allowNull: true // Esta columna puede ser null si el rol no es obligatorio
+                  },
+                  estatus:{
+                    type: DataTypes.ENUM('activo','inactivo'),
+                    allowNull:false,
+                    defaultValue:'inactivo'
                   }
                 
         },{
