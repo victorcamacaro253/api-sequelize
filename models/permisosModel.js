@@ -1,5 +1,7 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
+import Rol_Permisos from "./rolesPermisosModel.js";
+
 
 const Permisos= sequelize.define('permisos',{
     id: {
@@ -14,5 +16,8 @@ const Permisos= sequelize.define('permisos',{
 },{
     timestamps:false
 })
+
+
+
 
 export default Permisos;
