@@ -1,11 +1,12 @@
 import { Router } from "express"
 import userController from "../controllers/userController.js"
 import upload from "../middleware/multer.js"
+import authenticateToken from "../middleware/authenticationToken.js"
 const router = Router()
 
 
 
-router.get('/',userController.getAllUsers)
+router.get('/',authenticateToken,userController.getAllUsers)
 
 
 router.get('/name',userController.getUserByName)
