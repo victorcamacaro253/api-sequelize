@@ -2,7 +2,7 @@ import Permisos from "../models/permisosModel.js";
 import Role from "../models/rolesModel.js";
 //import Permisos from "../models/permisosModel.js";
 import Rol_Permisos from "../models/rolesPermisosModel.js";
-
+import { Op, fn, col } from 'sequelize';
 
 
 class rolesPermisosController{
@@ -246,7 +246,7 @@ try {
 static deletePermiso  = async (req,res)=>{
 const {id}= req.params
 try{
-    const permiso = await rolesPermisosModel.deletePermiso(id)
+    const permiso = await rolesPermisosModel.destroy(id)
     if(permiso.length===0){
         res.json({message: 'El permiso no existe'})
     }
@@ -264,6 +264,7 @@ static getPermisosByRole= async (req,res)=>{
         const permiso = await Permisos.findAll({
             include:[{
                 model: Rol_Permisos,
+                as:'id_permisos',
                 where:{role_id:id},
                 attributes:[]
             }],
@@ -271,9 +272,9 @@ static getPermisosByRole= async (req,res)=>{
         })
 
 
-         permiso= results.map(result => result.permiso);
+         const listapermiso= permiso.map(result => result.permiso);
 
-        res.json(permiso)
+        res.json(listapermiso)
 
         }catch(error){
 
@@ -284,6 +285,39 @@ static getPermisosByRole= async (req,res)=>{
         }
 
             }
+
+            
+static listaPermisosRoles=async (req,res)=> {
+    try {
+        const result = await Role.findAll({
+            attributes: [
+                'rol', // Selecciona el rol
+                [fn('GROUP_CONCAT', col('rol_permisos.permiso.permiso')), 'permisos'] // Usa GROUP_CONCAT para concatenar permisos
+            ],
+            include: [{
+                model: Rol_Permisos,
+                as: 'rol_permisos', // Asegúrate de que el alias coincida con tu definición de asociación
+                include: [{
+                    model: Permisos,
+                    as: 'permiso', // Asegúrate de que el alias coincida con tu definición de asociación
+                    attributes: ['permiso'] // Selecciona solo el campo permiso
+                }]
+            }],
+            group: ['roles.id_rol'] // Agrupa por el ID del rol
+        });
+
+         // Transformar el resultado para incluir solo rol y permisos
+         const formattedResult = result.map(role => ({
+            rol: role.rol,
+            permisos: role.dataValues.permisos ? role.dataValues.permisos.split(',') : null // Convertir a array si hay permisos
+        }));
+
+        res.json(formattedResult)  // Devuelve el resultado
+    }catch (error) {
+        console.error(error);
+        return res.status(500).json({message: 'Error al obtener los permisos del rol'});
+    }
+}
 
 
 
