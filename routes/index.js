@@ -8,6 +8,7 @@ import rolesPermisosRouters from "./rolesPermisosRoutes.js";
 import cookieParser from "cookie-parser";
 import csrf from '../middleware/csrfToken.js'
 import routeNotFound from "../middleware/routeNotFound.js";
+import importRoutes from '../routes/importRoutes.js'
 
 
 const router = Router();
@@ -30,6 +31,8 @@ router.use('/compras',csrf.csrfMiddleware,comprasRoutes)
 router.use('/notificaciones',noticationsRoutes)
 
 router.use('/',rolesPermisosRouters)
+
+router.use('/import',importRoutes)
 
 
 router.use(routeNotFound);

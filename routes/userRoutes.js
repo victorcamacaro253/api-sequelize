@@ -30,6 +30,6 @@ router.delete('/:id',userController.deleteUsers)
 
 router.post('/multiple',userController.deleteMultipleUsers)
 
-router.post('/import',upload.single('file'),userController.importUsers)
+
 
 export default router
